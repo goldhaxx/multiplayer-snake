@@ -1,39 +1,37 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
+import { generateFood, initializeSnake } from './utils';
+import Snake from './Snake';
+import Food from './Food';
 
 const gridSize = 20;
 const canvasSize = 500;
 const tileCount = canvasSize / gridSize;
 
-interface SnakePart {
-  x: number;
-  y: number;
-}
-
 const App: React.FC = () => {
-  const [snake, setSnake] = useState<SnakePart[]>([{ x: 10, y: 10 }]);
-  const [food, setFood] = useState({ x: Math.floor(Math.random() * tileCount), y: Math.floor(Math.random() * tileCount) });
+  const [snake, setSnake] = useState(initializeSnake());
+  const [food, setFood] = useState(generateFood(tileCount));
   const [velocity, setVelocity] = useState({ x: 0, y: 0 });
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const handleKeyDown = (event: KeyboardEvent) => {
-    switch (event.key) {
-      case 'w':
-        if (velocity.y === 0) setVelocity({ x: 0, y: -1 });
-        break;
-      case 's':
-        if (velocity.y === 0) setVelocity({ x: 0, y: 1 });
-        break;
-      case 'a':
-        if (velocity.x === 0) setVelocity({ x: -1, y: 0 });
-        break;
-      case 'd':
-        if (velocity.x === 0) setVelocity({ x: 1, y: 0 });
-        break;
-    }
-  };
-
   useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      switch (event.key) {
+        case 'w':
+          if (velocity.y === 0) setVelocity({ x: 0, y: -1 });
+          break;
+        case 's':
+          if (velocity.y === 0) setVelocity({ x: 0, y: 1 });
+          break;
+        case 'a':
+          if (velocity.x === 0) setVelocity({ x: -1, y: 0 });
+          break;
+        case 'd':
+          if (velocity.x === 0) setVelocity({ x: 1, y: 0 });
+          break;
+      }
+    };
+
     window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
@@ -48,7 +46,7 @@ const App: React.FC = () => {
 
       // Check for collision with food
       if (newHead.x === food.x && newHead.y === food.y) {
-        setFood({ x: Math.floor(Math.random() * tileCount), y: Math.floor(Math.random() * tileCount) });
+        setFood(generateFood(tileCount));
       } else {
         newSnake.pop();
       }
@@ -72,15 +70,9 @@ const App: React.FC = () => {
     // Clear the canvas
     ctx.clearRect(0, 0, canvasSize, canvasSize);
 
-    // Draw snake
-    ctx.fillStyle = 'lime';
-    snake.forEach(part => {
-      ctx.fillRect(part.x * gridSize, part.y * gridSize, gridSize, gridSize);
-    });
-
-    // Draw food
-    ctx.fillStyle = 'red';
-    ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
+    // Render snake and food
+    Snake(ctx, snake, gridSize);
+    Food(ctx, food, gridSize);
   }, [snake, food]);
 
   return (
